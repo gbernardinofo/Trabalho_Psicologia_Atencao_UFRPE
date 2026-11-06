@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Experimento: O Custo da Atenção</title>
+    <style>
+        :root {
+            --primary: #4a69bd;
+            --secondary: #1e3799;
+            --accent: #e55039;
+            --success: #78e08f;
+            --bg: #f1f2f6;
+            --text: #2f3542;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background-color: var(--bg);
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 2rem 1rem;
+            text-align: center;
+        }
+        header h1 { margin: 0 0 10px 0; }
+        header p { margin: 0; font-size: 0.9em; opacity: 0.9; }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .section-title {
+            color: var(--secondary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 0.5rem;
+            margin-top: 2.5rem;
+        }
+        
+        /* Experiment Styles */
+        .experiment-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+        .game-area {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background-color: #ecf0f1;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            display: none;
+        }
+        .target {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-color: var(--success);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .target:active { transform: scale(0.9); }
+        .distractor {
+            position: absolute;
+            background-color: var(--accent);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            pointer-events: none;
+            animation: popIn 0.3s ease-out;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            margin: 5px;
+        }
+        button:hover { background-color: var(--secondary); }
+        .btn-download {
+            background-color: #f1c40f;
+            color: #2c3e50;
+            margin-top: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .btn-download:hover { background-color: #f39c12; }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 1rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        /* Text content styles */
+        .content-box {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+        .highlight {
+            background-color: #e8f4f8;
+            border-left: 4px solid var(--primary);
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>O Custo da Atenção: Uma Análise do Efeito Distrator</h1>
+        <p>Produto Digital Interativo sobre a Psicologia da Atenção</p>
+        <p><strong>Disciplina:</strong> 05317 - PSICOLOGIA I - T10 (UFRPE)</p>
+        <p><strong>Aluno:</strong> Guilherme Bernardino Fernandes de Oliveira</p>
+        <button class="btn-download" onclick="downloadHTML()">📥 Baixar este arquivo HTML</button>
+    </header>
+
+    <div class="container">
+        
+        <h2 class="section-title">O Experimento: Teste de Atenção Seletiva e Interferência</h2>
+        <div class="content-box">
+            <p>Este experimento digital mede como estímulos distratores (simulando notificações de redes sociais) afetam seu <strong>tempo de reação</strong> e sua <strong>atenção seletiva</strong>.</p>
+            <p><strong>Instruções:</strong><br>
+            1. O objetivo é clicar no círculo verde (o alvo) o mais rápido possível assim que ele aparecer.<br>
+            2. Você fará duas fases de 15 segundos cada. <br>
+            3. A <strong>Fase 1 (Foco)</strong> testará sua atenção sustentada sem distrações.<br>
+            4. A <strong>Fase 2 (Interferência)</strong> introduzirá pop-ups simulando notificações, exigindo atenção seletiva para ignorá-los.</p>
+        </div>
+
+        <div class="experiment-container">
+            <div id="setup-area" style="display: block;">
+                <button onclick="startPhase1()">Iniciar Fase 1 (Sem Distrações)</button>
+                <button onclick="startPhase2()" id="btn-phase2" style="display: none;">Iniciar Fase 2 (Com Distrações)</button>
+                <button onclick="showResults()" id="btn-results" style="display: inline-block;">Ver Análise dos Resultados</button>
+            </div>
+            
+            <div id="timer-display" style="font-size: 1.5rem; font-weight: bold; color: var(--accent); display: none;">Tempo: 0s</div>
+            
+            <div class="game-area" id="game-area" style="display: none;">
+                <div class="target" id="target" onclick="hitTarget()" style="left: 739px; top: 18px; display: none;"></div>
+            </div>
+
+            <div class="stats" id="current-stats" style="display: flex;">
+                <span>Acertos: <span id="score">10</span></span>
+                <span>Tempo Médio: <span id="avg-time">787</span>ms</span>
+            </div>
+            
+            <div id="final-results" style="display:none; text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 20px;">
+                <h3>Resultados do Experimento</h3>
+                <p><strong>Fase 1 (Atenção Sustentada):</strong> <span id="res-score1">0</span> acertos | Tempo de Reação Médio: <span id="res-time1">0</span>ms</p>
+                <p><strong>Fase 2 (Interferência/Distração):</strong> <span id="res-score2">0</span> acertos | Tempo de Reação Médio: <span id="res-time2">0</span>ms</p>
+                <div class="highlight" id="conclusion-text"></div>
+            </div>
+        </div>
+
+        <h2 class="section-title">1. Compreendendo a Atenção</h2>
+        <div class="content-box">
+            <p>A <strong>atenção</strong> é o Processo Psicológico Básico responsável por selecionar, direcionar e manter nossos recursos cognitivos focados em determinados estímulos, enquanto ignoramos outros. Ela funciona como um "filtro" essencial, pois o cérebro humano tem capacidade de processamento limitada e não consegue lidar com a imensidão de estímulos visuais, auditivos e internos que nos bombardeiam simultaneamente.</p>
+            <p>Estar atento não é apenas "estar acordado" (estado de alerta), mas sim exercer um esforço ativo de <strong>seleção</strong> (escolher o que focar), <strong>direcionamento</strong> (voltar o foco para o alvo) e <strong>manutenção</strong> (sustentar o foco ao longo do tempo), mesmo quando o ambiente ou nossos próprios pensamentos tentam desviar esse recurso.</p>
+        </div>
+
+        <h2 class="section-title">2. Como Funciona a Atenção? (Processos)</h2>
+        <div class="content-box">
+            <ul>
+                <li><strong>Atenção Seletiva:</strong> É a capacidade de focar em um estímulo relevante enquanto se ignora ativamente os distratores. <em>Exemplo: O que você fez na Fase 2 do experimento, tentando focar no círculo verde e ignorar as notificações vermelhas.</em></li>
+                <li><strong>Atenção Sustentada:</strong> É a capacidade de manter o foco em uma tarefa contínua durante um período prolongado. <em>Exemplo: Estudar para uma prova lendo um livro por horas a fio, ou o que foi exigido na Fase 1 do experimento.</em></li>
+                <li><strong>Atenção Dividida:</strong> É a tentativa de focar em duas ou mais tarefas simultaneamente. Na verdade, o cérebro realiza uma <strong>alternância do foco atencional</strong> extremamente rápida entre as tarefas, o que gera sobrecarga cognitiva e perda de eficiência.</li>
+            </ul>
+        </div>
+
+        <h2 class="section-title">3. O Mito da Multitarefa e a Competição de Estímulos</h2>
+        <div class="content-box">
+            <p>Quando estudamos enquanto o celular apita com notificações, ocorre uma severa <strong>competição entre estímulos</strong>. O recurso atencional é limitado; logo, o cérebro precisa dividir a energia.</p>
+            <p>A afirmação <em>"Sou capaz de fazer várias coisas ao mesmo tempo sem comprometer meu desempenho"</em> é uma falácia neurocognitiva. A psicologia cognitiva demonstra que não fazemos processamento paralelo complexo (multitarefa real), mas sim uma alternância rápida de foco (task-switching). Cada vez que alternamos o foco (ex: do texto para o WhatsApp e de volta para o texto), ocorre um "custo de alternância", resultando em perda de tempo, aumento de erros, fadiga mental e menor retenção na memória (codificação superficial).</p>
+        </div>
+
+        <h2 class="section-title">4. Atenção Humana × Ambiente Digital</h2>
+        <div class="content-box">
+            <p>Ambientes digitais, como o <strong>TikTok</strong> ou o <strong>Instagram (Reels)</strong>, são plataformas de vídeo desenhadas especificamente para capturar e manipular a atenção do usuário utilizando princípios da psicologia comportamental e cognitiva:</p>
+            <ul>
+                <li><strong>Capturar:</strong> Cores vibrantes, reprodução automática, sons altos iniciais e movimento rápido ativam a rede de alerta do cérebro.</li>
+                <li><strong>Direcionar:</strong> O algoritmo de recomendação direciona o foco exibindo conteúdos hiper-personalizados baseados em comportamentos passados (viés de confirmação e interesse).</li>
+                <li><strong>Manter:</strong> O mecanismo de "scroll infinito" e recompensas intermitentes (como uma máquina caça-níqueis) mantêm a atenção sustentada de forma passiva, liberando dopamina.</li>
+                <li><strong>Interromper/Redirecionar:</strong> Notificações push, badges vermelhos e pop-ups interrompem abruptamente o foco atual do usuário (quebrando a atenção seletiva) para redirecioná-lo de volta à plataforma.</li>
+            </ul>
+        </div>
+
+        <h2 class="section-title">5. Síntese Explicativa &amp; Reflexão Final</h2>
+        <div class="content-box">
+            <h3>Síntese Explicativa</h3>
+            <ul>
+                <li><strong>Objetivo:</strong> Demonstrar empiricamente o custo cognitivo e o tempo de reação prejudicado quando há interferência de distratores digitais.</li>
+                <li><strong>Conceito adotado e Fenômeno:</strong> Adotou-se o modelo de atenção como recurso limitado, explorando o fenômeno da <em>distração e interferência visual</em>.</li>
+                <li><strong>Fundamentação e Funcionamento:</strong> Baseado em paradigmas experimentais de tempo de reação, o script em JavaScript mede em milissegundos o atraso causado quando notificações pop-up (distratores) competem pela atenção do usuário que busca o alvo (círculo verde).</li>
+                <li><strong>Resultados esperados:</strong> A Fase 2 tende a apresentar menos acertos e um tempo médio de reação significativamente maior que a Fase 1, provando o impacto negativo da sobrecarga de estímulos.</li>
+                <li><strong>Limites da experiência:</strong> É uma simulação simplificada baseada em cliques motores, não medindo a profundidade do processamento cognitivo semântico (como ocorreria ao ler um texto e ser interrompido).</li>
+            </ul>
+            
+            <h3>Reflexão Final</h3>
+            <p><strong>Em uma sociedade que disputa permanentemente nossa atenção, até que ponto direcionar a atenção é uma escolha exclusivamente individual?</strong></p>
+            <p>Direcionar a atenção deixou de ser uma escolha puramente individual. Vivemos na chamada "Economia da Atenção", onde conglomerados de tecnologia investem bilhões de dólares e utilizam neurociência comportamental para criar interfaces cujo objetivo principal é sequestrar nosso foco involuntário. Quando algoritmos são desenhados para explorar nossas vulnerabilidades psicológicas (medo de ficar de fora - FOMO, necessidade de aprovação social, aversão ao tédio), a capacidade de escolha individual é severamente minada e condicionada pelo design do ambiente digital em que estamos imersos.</p>
+            
+            <h3>Referências</h3>
+            <p>1. STERNBERG, R. J. Psicologia Cognitiva. 5. ed. São Paulo: Cengage Learning, 2010.<br>
+               2. LIMA, R. F. Compreendendo os mecanismos atencionais. Ciências &amp; Cognição, v. 6, 2005.<br>
+               3. GAZZANIGA, M. S.; HEATHERTON, T. F. Ciência Psicológica. 5. ed. Porto Alegre: Artmed, 2018.</p>
+        </div>
+
+    </div>
+
+    <script>
+        let currentPhase = 0;
+        let score = 0;
+        let targetAppearTime = 0;
+        let reactionTimes = [];
+        let gameTimer;
+        let targetTimer;
+        let distractorTimer;
+        let timeRemaining = 15;
+        let isPlaying = false;
+        
+        let results = {
+            phase1: { score: 0, avgTime: 0 },
+            phase2: { score: 0, avgTime: 0 }
+        };
+
+        const gameArea = document.getElementById('game-area');
+        const target = document.getElementById('target');
+        const distractors = ["Nova Mensagem!", "1 Notificação", "Alguém curtiu", "Bateria Fraca", "Alarme", "Atualização"];
+
+        function moveTarget() {
+            const maxX = gameArea.clientWidth - 40;
+            const maxY = gameArea.clientHeight - 40;
+            const x = Math.floor(Math.random() * maxX);
+            const y = Math.floor(Math.random() * maxY);
+            
+            target.style.left = x + 'px';
+            target.style.top = y + 'px';
+            target.style.display = 'block';
+            targetAppearTime = Date.now();
+        }
+
+        function createDistractor() {
+            if(!isPlaying || currentPhase !== 2) return;
+            
+            const dist = document.createElement('div');
+            dist.className = 'distractor';
+            dist.innerText = distractors[Math.floor(Math.random() * distractors.length)];
+            
+            const maxX = gameArea.clientWidth - 100;
+            const maxY = gameArea.clientHeight - 30;
+            dist.style.left = Math.floor(Math.random() * maxX) + 'px';
+            dist.style.top = Math.floor(Math.random() * maxY) + 'px';
+            
+            gameArea.appendChild(dist);
+            
+            setTimeout(() => {
+                if(dist.parentNode) dist.parentNode.removeChild(dist);
+            }, 1500);
+        }
+
+        function hitTarget() {
+            if(!isPlaying) return;
+            
+            const reactTime = Date.now() - targetAppearTime;
+            reactionTimes.push(reactTime);
+            score++;
+            
+            document.getElementById('score').innerText = score;
+            const avg = reactionTimes.reduce((a,b) => a+b, 0) / reactionTimes.length;
+            document.getElementById('avg-time').innerText = Math.round(avg);
+            
+            target.style.display = 'none';
+            
+            clearTimeout(targetTimer);
+            targetTimer = setTimeout(moveTarget, Math.random() * 800 + 200);
+        }
+
+        function startGame(phase) {
+            currentPhase = phase;
+            score = 0;
+            reactionTimes = [];
+            timeRemaining = 15;
+            isPlaying = true;
+            
+            document.getElementById('setup-area').style.display = 'none';
+            gameArea.style.display = 'block';
+            document.getElementById('current-stats').style.display = 'flex';
+            document.getElementById('timer-display').style.display = 'block';
+            document.getElementById('timer-display').innerText = `Tempo: 15s`;
+            
+            // Clean up
+            const oldDistractors = document.querySelectorAll('.distractor');
+            oldDistractors.forEach(d => d.remove());
+            
+            moveTarget();
+            
+            if(phase === 2) {
+                distractorTimer = setInterval(createDistractor, 700);
+            }
+            
+            gameTimer = setInterval(() => {
+                timeRemaining--;
+                document.getElementById('timer-display').innerText = `Tempo: ${timeRemaining}s`;
+                
+                if(timeRemaining <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            isPlaying = false;
+            clearInterval(gameTimer);
+            clearTimeout(targetTimer);
+            clearInterval(distractorTimer);
+            
+            target.style.display = 'none';
+            gameArea.style.display = 'none';
+            document.getElementById('timer-display').style.display = 'none';
+            document.getElementById('setup-area').style.display = 'block';
+            
+            const avg = reactionTimes.length > 0 ? Math.round(reactionTimes.reduce((a,b) => a+b, 0) / reactionTimes.length) : 0;
+            
+            if(currentPhase === 1) {
+                results.phase1.score = score;
+                results.phase1.avgTime = avg;
+                document.getElementById('btn-phase2').style.display = 'inline-block';
+                document.getElementById('btn-phase2').disabled = false;
+                alert(`Fase 1 concluída!
+Acertos: ${score}
+Tempo médio de reação: ${avg}ms
+
+Agora prepare-se para a Fase 2.`);
+            } else {
+                results.phase2.score = score;
+                results.phase2.avgTime = avg;
+                document.getElementById('btn-phase2').style.display = 'none';
+                document.getElementById('btn-results').style.display = 'inline-block';
+                alert(`Fase 2 concluída!
+Acertos: ${score}
+Tempo médio de reação: ${avg}ms`);
+            }
+        }
+
+        function startPhase1() { startGame(1); }
+        function startPhase2() { startGame(2); }
+
+        function showResults() {
+            document.getElementById('final-results').style.display = 'block';
+            document.getElementById('setup-area').style.display = 'none';
+            document.getElementById('current-stats').style.display = 'none';
+            
+            document.getElementById('res-score1').innerText = results.phase1.score;
+            document.getElementById('res-time1').innerText = results.phase1.avgTime;
+            document.getElementById('res-score2').innerText = results.phase2.score;
+            document.getElementById('res-time2').innerText = results.phase2.avgTime;
+            
+            const diffTime = results.phase2.avgTime - results.phase1.avgTime;
+            let conclusion = "";
+            
+            if(diffTime > 0) {
+                conclusion = `A Fase 2 aumentou seu tempo de reação em ${diffTime}ms em média! Isso comprova o custo cognitivo da interferência. Quando as notificações (distratores) apareceram, seu cérebro precisou gastar recursos de atenção seletiva para inibi-las, reduzindo sua velocidade e eficiência na tarefa principal.`;
+            } else {
+                conclusion = `Seu tempo de reação na Fase 2 foi igual ou melhor. Isso indica uma capacidade excepcional de atenção seletiva para ignorar distratores, ou a tarefa primária tornou-se mais automática devido ao treino na Fase 1. Ainda assim, em tarefas complexas reais (como ler), a interferência cobra um preço cognitivo maior.`;
+            }
+            
+            document.getElementById('conclusion-text').innerText = conclusion;
+        }
+
+        function downloadHTML() {
+            const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+            const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Trabalho_Psicologia_Atencao_UFRPE.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+
+</body></html>
